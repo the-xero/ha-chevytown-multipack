@@ -23,7 +23,7 @@
 
 ## 설치
 
-### HACS (미지원)
+### HACS 
 
 1. **HACS > Integrations > Explore & Add Repositories** 로 이동
 2. `https://github.com/the-xero/ha-chevytown-multipack` 추가
