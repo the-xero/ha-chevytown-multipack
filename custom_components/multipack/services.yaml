@@ -1,0 +1,9 @@
+multipack_vehicle_start:
+  description: "원격 시동 켜기"
+  fields:
+    id:
+      description: "사용자 ID"
+      example: "!secret multipack_id"
+    key:
+      description: "API Key"
+      example: "!secret multipack_key"

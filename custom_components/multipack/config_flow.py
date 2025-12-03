@@ -1,9 +1,8 @@
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.core import callback
 from .const import DOMAIN
 
-class MalibuConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class MultipackConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
