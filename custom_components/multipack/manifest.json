@@ -5,5 +5,5 @@
   "documentation": "https://github.com/the-xero/ha-chevytown-multipack",
   "dependencies": [],
   "codeowners": ["@the-xero"],
-  "requirements": ["aiohttp"]
+  "requirements": [""]
 }
