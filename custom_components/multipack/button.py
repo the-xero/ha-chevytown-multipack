@@ -29,6 +29,8 @@ class MultipackButton(ButtonEntity):
         car_prefix = car_name.lower() if car_name else "multipack"
         # unique_id를 소문자로 정규화하여 entity_id 생성 제어
         self._attr_unique_id = f"{car_prefix}_{cmd}"
+        # translation_key를 cmd 기반으로 설정 (영문 기반 entity_id 생성)
+        self._attr_translation_key = cmd.lower()
         self._cmd = cmd
         self._entry = entry
         self._icon = icon

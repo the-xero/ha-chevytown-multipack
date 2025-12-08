@@ -1,0 +1,65 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Multipack 설정",
+        "description": "쉐비타운 멀티팩 API 인증 정보를 입력하세요.",
+        "data": {
+          "car_name": "자동차 이름",
+          "id": "사용자 ID",
+          "key": "API Key"
+        }
+      }
+    },
+    "error": {
+      "invalid_car_name": "자동차 이름이 비어있습니다.",
+      "invalid_id": "사용자 ID가 비어있습니다.",
+      "invalid_key": "API Key가 비어있습니다."
+    }
+  },
+  "entity": {
+    "button": {
+      "vehicle_start": {
+        "name": "원격 시동 켜기"
+      },
+      "vehicle_stop": {
+        "name": "원격 시동 끄기"
+      },
+      "door_lock": {
+        "name": "도어 잠금"
+      },
+      "door_unlock": {
+        "name": "도어 열기"
+      },
+      "window_open": {
+        "name": "창문 열기"
+      },
+      "window_close": {
+        "name": "창문 닫기"
+      },
+      "trunk_open": {
+        "name": "트렁크 열기"
+      },
+      "trunk_close": {
+        "name": "트렁크 닫기"
+      },
+      "panic": {
+        "name": "경적"
+      },
+      "sunroof_open": {
+        "name": "썬루프 열기"
+      },
+      "sunroof_close": {
+        "name": "썬루프 닫기"
+      },
+      "sunroof_tilt": {
+        "name": "썬루프 틸트"
+      }
+    },
+    "sensor": {
+      "last_action": {
+        "name": "마지막 명령"
+      }
+    }
+  }
+}

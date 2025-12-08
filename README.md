@@ -45,7 +45,7 @@
 
 ```yaml
 type: button
-entity: button.malibu_VEHICLE_START
+entity: button.malibu_vehicle_start
 name: 원격 시동
 icon: mdi:car-start
 ```
@@ -61,8 +61,29 @@ automation:
     action:
       service: button.press
       target:
-        entity_id: button.malibu_VEHICLE_START
+        entity_id: button.malibu_vehicle_start
 ```
+
+## 엔티티 목록
+
+자동차 이름이 "Malibu"인 경우:
+
+**버튼:**
+- `button.malibu_vehicle_start` - 원격 시동 켜기
+- `button.malibu_vehicle_stop` - 원격 시동 끄기
+- `button.malibu_door_lock` - 도어 잠금
+- `button.malibu_door_unlock` - 도어 열기
+- `button.malibu_window_open` - 창문 열기
+- `button.malibu_window_close` - 창문 닫기
+- `button.malibu_trunk_open` - 트렁크 열기
+- `button.malibu_trunk_close` - 트렁크 닫기
+- `button.malibu_panic` - 경적
+- `button.malibu_sunroof_open` - 썬루프 열기
+- `button.malibu_sunroof_close` - 썬루프 닫기
+- `button.malibu_sunroof_tilt` - 썬루프 틸트
+
+**센서:**
+- `sensor.malibu_last_action` - 마지막 명령 (상태 및 실행 시간)
 
 ## 문제 해결
 

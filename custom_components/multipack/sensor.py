@@ -13,10 +13,12 @@ class MultipackLastAction(SensorEntity):
     def __init__(self, hass, entry):
         self._hass = hass
         self._entry = entry
-        self._attr_name = "마지막 명령"
+        self._attr_name = "Last Action"
         car_name = entry.data.get("car_name", "multipack")
         # unique_id를 소문자로 정규화
         self._attr_unique_id = f"{car_name.lower()}_last_action"
+        # translation_key 설정 (영문 기반 entity_id, 한글 이름)
+        self._attr_translation_key = "last_action"
         self._state = "대기 중"
         self._last_updated = None
 
