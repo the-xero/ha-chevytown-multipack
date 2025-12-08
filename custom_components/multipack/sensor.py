@@ -13,6 +13,7 @@ class MultipackLastAction(SensorEntity):
     def __init__(self, hass, entry):
         self._hass = hass
         self._entry = entry
+        # 변경: _attr_name을 영문으로 설정 (translation_key로 한글 이름 제어)
         self._attr_name = "Last Action"
         car_name = entry.data.get("car_name", "multipack")
         # unique_id를 소문자로 정규화
