@@ -1,5 +1,4 @@
-from homeassistant.helpers.entity import SensorEntity
-from homeassistant.const import STATE_UNKNOWN
+from homeassistant.components.sensor import SensorEntity
 from .const import DOMAIN
 from datetime import datetime
 

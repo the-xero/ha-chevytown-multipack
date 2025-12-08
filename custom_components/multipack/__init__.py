@@ -42,24 +42,27 @@ async def async_unload_entry(hass, entry):
 
 async def _validate_api_credentials(hass, entry):
     """Validate API credentials by making a test request."""
-    id_ = entry.data.get("id")
-    key_ = entry.data.get("key")
+    id_ = entry.data.get("id", "").strip()
+    key_ = entry.data.get("key", "").strip()
     
     if not id_ or not key_:
+        _LOGGER.error("ID 또는 KEY가 비어있음")
         return False
     
     session = async_get_clientsession(hass)
     try:
-        async with async_timeout.timeout(5):
-            # 도어 잠금 명령으로 API 검증 (실제 명령 1회 실행)
+        async with async_timeout.timeout(10):  # 타임아웃 10초로 증대
             resp = await session.get(
-                f"https://mp.gmone.co.kr/api?id={id_}&key={key_}&cmd=DOOR_LOCK"
+                f"https://mp.gmone.co.kr/api?id={id_}&key={key_}&cmd=DOOR_LOCK",
+                ssl=False  # SSL 검증 오류 시 비활성화
             )
-            # 응답이 있으면 자격증명이 유효함으로 판단
-            _LOGGER.info(f"API 검증 완료 - 도어 잠금 명령 실행 (상태: {resp.status})")
+            _LOGGER.info(f"API 검증 - 상태 코드: {resp.status}")
             return resp.status in [200, 400, 401, 404, 500]
+    except async_timeout.TimeoutError:
+        _LOGGER.error("API 검증 타임아웃 (10초)")
+        return False
     except Exception as exc:
-        _LOGGER.warning(f"API 검증 중 오류: {exc}")
+        _LOGGER.error(f"API 검증 중 오류: {type(exc).__name__}: {exc}")
         return False
 
 def _register_services(hass, entry):
