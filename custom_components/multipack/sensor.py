@@ -24,7 +24,7 @@ class MultipackLastAction(SensorEntity):
 
     @property
     def icon(self):
-        return "mdi:car"
+        return "mdi:car-info"
 
     @property
     def extra_state_attributes(self):
