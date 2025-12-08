@@ -1,7 +1,7 @@
 {
   "domain": "multipack",
   "name": "쉐비타운 멀티팩 커넥티드",
-  "version": "1.0.2",
+  "version": "0.0.7",
   "documentation": "https://github.com/the-xero/ha-chevytown-multipack",
   "codeowners": ["@the-xero"],
   "requirements": [],

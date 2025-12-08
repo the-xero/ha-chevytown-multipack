@@ -5,12 +5,14 @@
         "title": "Multipack 설정",
         "description": "쉐비타운 멀티팩 API 인증 정보를 입력하세요.",
         "data": {
+          "car_name": "자동차 이름",
           "id": "사용자 ID",
           "key": "API Key"
         }
       }
     },
     "error": {
+      "invalid_car_name": "자동차 이름이 비어있습니다.",
       "invalid_id": "사용자 ID가 비어있습니다.",
       "invalid_key": "API Key가 비어있습니다."
     }

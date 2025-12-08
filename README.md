@@ -29,6 +29,7 @@
 **설정 > 기기 및 서비스 > 통합 추가 > Multipack**
 
 다음 정보를 입력하세요:
+- **자동차 이름**: 차량 이름 (예: "Malibu", "Equinox") - 엔티티 ID 접두사로 사용됨
 - **사용자 ID**: Multipack 계정 ID
 - **API Key**: Multipack API 키
 
@@ -40,9 +41,11 @@
 
 ### Lovelace UI
 
+차량 이름을 "Malibu"로 설정한 경우:
+
 ```yaml
 type: button
-entity: button.multipack_vehicle_start
+entity: button.malibu_VEHICLE_START
 name: 원격 시동
 icon: mdi:car-start
 ```
@@ -58,7 +61,7 @@ automation:
     action:
       service: button.press
       target:
-        entity_id: button.multipack_vehicle_start
+        entity_id: button.malibu_VEHICLE_START
 ```
 
 ## 문제 해결

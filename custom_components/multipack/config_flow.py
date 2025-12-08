@@ -12,10 +12,13 @@ class MultipackConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
         if user_input is not None:
             # 입력값 검증
+            car_name = user_input.get("car_name", "").strip() if user_input.get("car_name") else ""
             id_val = user_input.get("id", "").strip() if user_input.get("id") else ""
             key_val = user_input.get("key", "").strip() if user_input.get("key") else ""
             
-            if not id_val:
+            if not car_name:
+                errors["base"] = "invalid_car_name"
+            elif not id_val:
                 errors["base"] = "invalid_id"
             elif not key_val:
                 errors["base"] = "invalid_key"
@@ -27,14 +30,16 @@ class MultipackConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self._abort_if_unique_id_configured()
                 
                 return self.async_create_entry(
-                    title=f"Multipack ({id_val})",
+                    title=f"Multipack ({car_name})",
                     data={
+                        "car_name": car_name,
                         "id": id_val,
                         "key": key_val
                     }
                 )
 
         data_schema = vol.Schema({
+            vol.Required("car_name"): str,
             vol.Required("id"): str,
             vol.Required("key"): str
         })

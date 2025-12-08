@@ -1,6 +1,7 @@
 from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const import COMMANDS, DOMAIN
+from homeassistant.const import CONF_DEVICE_NAME
 import async_timeout
 import logging
 import json
@@ -9,6 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     buttons = []
+    car_name = entry.data.get("car_name", "car")
     for key, value in COMMANDS.items():
         buttons.append(MultipackButton(
             hass,
@@ -16,20 +18,33 @@ async def async_setup_entry(hass, entry, async_add_entities):
             value["name"],
             value["cmd"],
             entry,
+            car_name=car_name,
             icon=value.get("icon")
         ))
     async_add_entities(buttons)
 
 class MultipackButton(ButtonEntity):
-    def __init__(self, hass, key, name, cmd, entry, icon=None):
+    def __init__(self, hass, key, name, cmd, entry, car_name=None, icon=None):
         self._hass = hass
         self._attr_name = name
-        # 변경: 구성요소(unique_id)를 cmd와 entry_id 조합으로 설정하여 엔트리별 고유성 보장
-        self._attr_unique_id = f"{cmd}_{entry.entry_id}"
+        car_prefix = car_name.lower() if car_name else "multipack"
+        # unique_id를 소문자로 정규화하여 entity_id 생성 제어
+        self._attr_unique_id = f"{car_prefix}_{cmd}"
         self._cmd = cmd
         self._entry = entry
         self._icon = icon
+        self._car_name = car_name
         self._attr_should_poll = False
+
+    @property
+    def device_info(self):
+        """Return device info."""
+        return {
+            "identifiers": {(DOMAIN, self._entry.entry_id)},
+            "name": self._car_name,
+            "manufacturer": "Chevytown",
+            "model": "Multipack Connected"
+        }
 
     @property
     def icon(self):

@@ -14,10 +14,22 @@ class MultipackLastAction(SensorEntity):
         self._hass = hass
         self._entry = entry
         self._attr_name = "마지막 명령"
-        # 변경: 센서 unique_id를 entry별로 고유하게 설정
-        self._attr_unique_id = f"last_action_{entry.entry_id}"
+        car_name = entry.data.get("car_name", "multipack")
+        # unique_id를 소문자로 정규화
+        self._attr_unique_id = f"{car_name.lower()}_last_action"
         self._state = "대기 중"
         self._last_updated = None
+
+    @property
+    def device_info(self):
+        """Return device info."""
+        car_name = self._entry.data.get("car_name", "multipack")
+        return {
+            "identifiers": {(DOMAIN, self._entry.entry_id)},
+            "name": car_name,
+            "manufacturer": "Chevytown",
+            "model": "Multipack Connected"
+        }
 
     @property
     def state(self):
