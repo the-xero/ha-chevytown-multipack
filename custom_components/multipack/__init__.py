@@ -51,15 +51,17 @@ async def _validate_api_credentials(hass, entry):
     
     session = async_get_clientsession(hass)
     try:
-        async with async_timeout.timeout(10):  # 타임아웃 10초로 증대
+        # 변경: 타임아웃을 20초로 연장
+        async with async_timeout.timeout(20):
             resp = await session.get(
                 f"https://mp.gmone.co.kr/api?id={id_}&key={key_}&cmd=DOOR_LOCK",
-                ssl=False  # SSL 검증 오류 시 비활성화
+                ssl=False
             )
-            _LOGGER.info(f"API 검증 - 상태 코드: {resp.status}")
+            _LOGGER.info(f"API 검증 - 도어 잠금 명령 실행 상태 코드: {resp.status}")
+            # API 응답이 있으면 연결 가능으로 간주
             return resp.status in [200, 400, 401, 404, 500]
     except async_timeout.TimeoutError:
-        _LOGGER.error("API 검증 타임아웃 (10초)")
+        _LOGGER.error("API 검증 타임아웃 (20초)")
         return False
     except Exception as exc:
         _LOGGER.error(f"API 검증 중 오류: {type(exc).__name__}: {exc}")
@@ -82,9 +84,13 @@ async def _call_api(hass, id_, key_, cmd):
     url = f"https://mp.gmone.co.kr/api?id={id_}&key={key_}&cmd={cmd}"
     session = async_get_clientsession(hass)
     try:
-        async with async_timeout.timeout(10):
+        # 변경: 타임아웃을 20초로 연장
+        async with async_timeout.timeout(20):
             resp = await session.get(url)
             return await resp.text()
+    except async_timeout.TimeoutError:
+        _LOGGER.error(f"API 호출 타임아웃: {cmd}")
+        return None
     except Exception as exc:
         _LOGGER.error(f"API 호출 실패: {exc}")
         return None

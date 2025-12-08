@@ -4,6 +4,7 @@ from .const import COMMANDS, DOMAIN
 import async_timeout
 import logging
 import json
+import asyncio
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ class MultipackButton(ButtonEntity):
         self._entry = entry
         self._icon = icon
         self._car_name = car_name
+        self._notification_entity = entry.data.get("notification_entity") or None
         self._attr_should_poll = False
 
     @property
@@ -43,7 +45,7 @@ class MultipackButton(ButtonEntity):
         return {
             "identifiers": {(DOMAIN, self._entry.entry_id)},
             "name": self._car_name,
-            "manufacturer": "Chevytown",
+            "manufacturer": "@the-xero",
             "model": "Multipack Connected"
         }
 
@@ -59,42 +61,100 @@ class MultipackButton(ButtonEntity):
 
         session = async_get_clientsession(self._hass)
         try:
-            async with async_timeout.timeout(10):
+            # 변경: 타임아웃을 20초로 연장
+            async with async_timeout.timeout(20):
                 resp = await session.get(url)
-                
-                if resp.status == 200:
-                    result = await resp.text()
-                    _LOGGER.debug(f"[{self._attr_name}] API 응답: {result}")
-                    
-                    # 응답 파싱 (JSON 또는 텍스트)
-                    success = await self._parse_response(result)
-                    if success:
-                        _LOGGER.info(f"{self._attr_name} 실행 완료")
-                        await self._update_sensor(f"✓ {self._attr_name}")
-                    else:
-                        _LOGGER.warning(f"{self._attr_name} 실행 실패: {result}")
-                        await self._update_sensor(f"✗ {self._attr_name}")
-                else:
-                    _LOGGER.error(f"API 오류 - 상태 코드: {resp.status}")
-                    await self._update_sensor(f"✗ {self._attr_name} (HTTP {resp.status})")
-                    
+                result = await resp.text()
+                _LOGGER.debug(f"[{self._attr_name}] API 응답(status={resp.status}): {result}")
+
         except async_timeout.TimeoutError:
-            _LOGGER.error(f"{self._attr_name}: 타임아웃 (10초)")
+            _LOGGER.error(f"{self._attr_name}: 타임아웃 (20초)")
             await self._update_sensor(f"✗ {self._attr_name} (타임아웃)")
+            return
         except Exception as exc:
             _LOGGER.error(f"{self._attr_name} 실행 중 오류: {type(exc).__name__}: {exc}")
             await self._update_sensor(f"✗ {self._attr_name} ({type(exc).__name__})")
+            return
+
+        # 1) API 응답 자체로 성공 판단 (오직 '1' 또는 JSON 숫자 1 만 성공으로 간주)
+        if self._api_response_indicates_success(result):
+            _LOGGER.info(f"{self._attr_name} 실행 완료 (API 응답으로 판별)")
+            await self._update_sensor(f"✓ {self._attr_name}")
+            return
+
+        # 2) notification_entity 설정이 있으면 알림을 폴링하여 기대 문구 확인 (타임아웃 20초)
+        if self._notification_entity:
+            expected_phrases = self._expected_phrases_for_cmd(self._cmd)
+            if expected_phrases:
+                ok = await self._wait_for_notification(expected_phrases, timeout=20)
+                if ok:
+                    _LOGGER.info(f"{self._attr_name} 실행 완료 (notification 확인)")
+                    await self._update_sensor(f"✓ {self._attr_name}")
+                    return
+
+        # 3) 실패 처리
+        _LOGGER.warning(f"{self._attr_name} 실행 실패 (API 및 notification으로 확인 불가)")
+        await self._update_sensor(f"✗ {self._attr_name}")
+
+    def _api_response_indicates_success(self, response_text: str) -> bool:
+        """API는 명령 전송의 성공/실패만 반환하므로 '1' (또는 JSON 숫자 1)만 성공으로 간주."""
+        txt = (response_text or "").strip()
+        # 정확히 "1"인 경우 성공
+        if txt == "1":
+            return True
+        # JSON 형태로 숫자 1 혹은 {"result":1} 등 처리 시 성공으로 판단
+        try:
+            data = json.loads(response_text)
+            # 숫자 1 직접 반환 또는 {"result": 1}
+            if data == 1:
+                return True
+            if isinstance(data, dict) and (data.get("result") == 1 or data.get("status") == 1):
+                return True
+        except Exception:
+            pass
+        return False
+
+    def _expected_phrases_for_cmd(self, cmd: str):
+        """명령별로 notification에서 기대하는 문구 목록 반환(한국어/영문 포함)."""
+        # 한국어 문구 우선, 소문자 비교에 대비한 영문/한국어 혼합
+        mapping = {
+            "WINDOW_OPEN": ["창문이 열렸습니다", "윈도우가 열렸습니다", "window opened"],
+            "WINDOW_CLOSE": ["창문이 닫혔습니다", "윈도우가 닫혔습니다", "window closed"],
+            "DOOR_OPEN": ["도어가 열렸습니다", "door unlocked"],
+            "DOOR_LOCK": ["도어가 잠겼습니다", "door locked"],
+            "SUNROOF_OPEN": ["썬루프가 열렸습니다", "sunroof opened"],
+            "SUNROOF_TILT": ["썬루프가 틸트 되었습니다", "sunroof tilted"],
+            "SUNROOF_CLOSE": ["썬루프가 닫혔습니다", "sunroof closed"],
+            "VEHICLE_START": ["시동이 걸렸습니다", "engine started", "vehicle started"],
+            "VEHICLE_STOP": ["시동이 OFF되었습니다", "engine off", "vehicle stopped"]
+        }
+        return mapping.get(cmd, [])
+
+    async def _wait_for_notification(self, expected_phrases, timeout=20):
+        """notification_entity 상태를 폴링하여 expected_phrases가 포함되는지 확인."""
+        ent = self._notification_entity
+        if not ent:
+            return False
+        interval = 1.0
+        elapsed = 0.0
+        while elapsed < timeout:
+            state_obj = self._hass.states.get(ent)
+            if state_obj and state_obj.state:
+                txt = str(state_obj.state).lower()
+                for phrase in expected_phrases:
+                    if phrase.lower() in txt:
+                        return True
+            await asyncio.sleep(interval)
+            elapsed += interval
+        return False
 
     async def _parse_response(self, response: str) -> bool:
-        """Parse API response to determine success."""
+        """이 함수는 기존 코드와 호환성을 위해 유지(사용 안됨 가능)."""
         try:
-            # JSON 응답 시도
             data = json.loads(response)
-            # API 응답 형식에 따라 수정 필요
             return data.get("result") == "success" or data.get("status") == "ok"
         except (json.JSONDecodeError, ValueError):
-            # 텍스트 응답: "success", "ok" 포함 여부 확인
-            return "success" in response.lower() or "ok" in response.lower()
+            return "success" in (response or "").lower() or "ok" in (response or "").lower()
 
     async def _update_sensor(self, msg):
         """Update last action sensor."""

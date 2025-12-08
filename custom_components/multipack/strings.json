@@ -7,7 +7,8 @@
         "data": {
           "car_name": "Car Name",
           "id": "User ID",
-          "key": "API Key"
+          "key": "API Key",
+          "notification_entity": "Notification entity (optional, e.g. sensor.s24_ultra_last_notification)"
         }
       }
     },

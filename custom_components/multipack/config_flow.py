@@ -15,7 +15,8 @@ class MultipackConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             car_name = user_input.get("car_name", "").strip() if user_input.get("car_name") else ""
             id_val = user_input.get("id", "").strip() if user_input.get("id") else ""
             key_val = user_input.get("key", "").strip() if user_input.get("key") else ""
-            
+            notification_entity = user_input.get("notification_entity", "").strip() if user_input.get("notification_entity") else ""
+
             if not car_name:
                 errors["base"] = "invalid_car_name"
             elif not id_val:
@@ -34,14 +35,16 @@ class MultipackConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data={
                         "car_name": car_name,
                         "id": id_val,
-                        "key": key_val
+                        "key": key_val,
+                        "notification_entity": notification_entity
                     }
                 )
 
         data_schema = vol.Schema({
             vol.Required("car_name"): str,
             vol.Required("id"): str,
-            vol.Required("key"): str
+            vol.Required("key"): str,
+            vol.Optional("notification_entity", default=""): str
         })
         return self.async_show_form(
             step_id="user",
