@@ -5,8 +5,15 @@ import async_timeout
 
 async def async_setup_entry(hass, entry, async_add_entities):
     buttons = []
+    # 각 버튼에 icon까지 전달
     for key, value in COMMANDS.items():
-        buttons.append(MultipackButton(key, value["name"], value["cmd"], entry))
+        buttons.append(MultipackButton(
+            key,
+            value["name"],
+            value["cmd"],
+            entry,
+            icon=value.get("icon")
+        ))
     async_add_entities(buttons)
 
 class MultipackButton(ButtonEntity):
