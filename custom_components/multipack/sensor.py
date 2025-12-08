@@ -1,19 +1,23 @@
 from homeassistant.helpers.entity import SensorEntity
+from homeassistant.const import STATE_UNKNOWN
 from .const import DOMAIN
+from datetime import datetime
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    # 센서 인스턴스 생성 및 등록, entry별로 hass.data에 보관
-    sensor = MultipackLastAction()
+    sensor = MultipackLastAction(hass, entry)
     async_add_entities([sensor])
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN].setdefault(entry.entry_id, {})
     hass.data[DOMAIN][entry.entry_id]["last_action_sensor"] = sensor
 
 class MultipackLastAction(SensorEntity):
-    def __init__(self):
+    def __init__(self, hass, entry):
+        self._hass = hass
+        self._entry = entry
         self._attr_name = "마지막 명령"
-        self._attr_unique_id = f"{DOMAIN}_last_action"
+        self._attr_unique_id = f"{DOMAIN}_last_action_{entry.entry_id}"
         self._state = "대기 중"
+        self._last_updated = None
 
     @property
     def state(self):
@@ -23,6 +27,16 @@ class MultipackLastAction(SensorEntity):
     def icon(self):
         return "mdi:car"
 
-    def update_state(self, msg):
+    @property
+    def extra_state_attributes(self):
+        """Return extra state attributes."""
+        return {
+            "last_updated": self._last_updated.isoformat() if self._last_updated else None,
+            "entry_id": self._entry.entry_id
+        }
+
+    async def async_update_state(self, msg):
+        """Update state asynchronously."""
         self._state = msg
-        self.schedule_update_ha_state()
+        self._last_updated = datetime.now()
+        self.async_write_ha_state()

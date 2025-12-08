@@ -1,0 +1,59 @@
+multipack_vehicle_start:
+  name: 원격 시동 켜기
+  description: "차량의 엔진을 원격으로 시동합니다."
+  fields: {}
+
+multipack_vehicle_stop:
+  name: 원격 시동 끄기
+  description: "차량의 엔진을 원격으로 정지합니다."
+  fields: {}
+
+multipack_door_lock:
+  name: 도어 잠금
+  description: "차량의 모든 도어를 잠금합니다."
+  fields: {}
+
+multipack_door_unlock:
+  name: 도어 열기
+  description: "차량의 모든 도어를 엽니다."
+  fields: {}
+
+multipack_window_open:
+  name: 창문 열기
+  description: "차량의 모든 창문을 엽니다."
+  fields: {}
+
+multipack_window_close:
+  name: 창문 닫기
+  description: "차량의 모든 창문을 닫습니다."
+  fields: {}
+
+multipack_trunk_open:
+  name: 트렁크 열기
+  description: "차량의 트렁크를 엽니다."
+  fields: {}
+
+multipack_trunk_close:
+  name: 트렁크 닫기
+  description: "차량의 트렁크를 닫습니다."
+  fields: {}
+
+multipack_panic:
+  name: 경적
+  description: "차량의 경적(패닉)을 작동합니다."
+  fields: {}
+
+multipack_sunroof_open:
+  name: 썬루프 열기
+  description: "차량의 썬루프를 엽니다."
+  fields: {}
+
+multipack_sunroof_close:
+  name: 썬루프 닫기
+  description: "차량의 썬루프를 닫습니다."
+  fields: {}
+
+multipack_sunroof_tilt:
+  name: 썬루프 틸트
+  description: "차량의 썬루프를 틸트합니다."
+  fields: {}
