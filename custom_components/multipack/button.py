@@ -61,14 +61,14 @@ class MultipackButton(ButtonEntity):
 
         session = async_get_clientsession(self._hass)
         try:
-            # 변경: 타임아웃을 20초로 연장
-            async with async_timeout.timeout(20):
+            # 변경: 타임아웃을 30초로 연장
+            async with async_timeout.timeout(30):
                 resp = await session.get(url)
                 result = await resp.text()
                 _LOGGER.debug(f"[{self._attr_name}] API 응답(status={resp.status}): {result}")
 
         except async_timeout.TimeoutError:
-            _LOGGER.error(f"{self._attr_name}: HTTP 타임아웃 (20초)")
+            _LOGGER.error(f"{self._attr_name}: HTTP 타임아웃 (30초)")
             # 네트워크 타임아웃은 즉시 timeout 처리
             await self._update_sensor(f"timeout: {self._attr_name}")
             return
