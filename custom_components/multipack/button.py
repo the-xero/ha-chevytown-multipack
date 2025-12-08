@@ -1,7 +1,6 @@
 from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const import COMMANDS, DOMAIN
-from homeassistant.const import CONF_DEVICE_NAME
 import async_timeout
 import logging
 import json
