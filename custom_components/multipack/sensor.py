@@ -14,7 +14,8 @@ class MultipackLastAction(SensorEntity):
         self._hass = hass
         self._entry = entry
         self._attr_name = "마지막 명령"
-        self._attr_unique_id = f"{DOMAIN}_last_action_{entry.entry_id}"
+        # 변경: 센서 unique_id를 entry별로 고유하게 설정
+        self._attr_unique_id = f"last_action_{entry.entry_id}"
         self._state = "대기 중"
         self._last_updated = None
 

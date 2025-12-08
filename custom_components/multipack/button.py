@@ -24,7 +24,8 @@ class MultipackButton(ButtonEntity):
     def __init__(self, hass, key, name, cmd, entry, icon=None):
         self._hass = hass
         self._attr_name = name
-        self._attr_unique_id = f"multipack_{key}_{entry.entry_id}"
+        # 변경: 구성요소(unique_id)를 cmd와 entry_id 조합으로 설정하여 엔트리별 고유성 보장
+        self._attr_unique_id = f"{cmd}_{entry.entry_id}"
         self._cmd = cmd
         self._entry = entry
         self._icon = icon
