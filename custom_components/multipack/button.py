@@ -68,48 +68,63 @@ class MultipackButton(ButtonEntity):
                 _LOGGER.debug(f"[{self._attr_name}] API 응답(status={resp.status}): {result}")
 
         except async_timeout.TimeoutError:
-            _LOGGER.error(f"{self._attr_name}: 타임아웃 (20초)")
-            await self._update_sensor(f"✗ {self._attr_name} (타임아웃)")
+            _LOGGER.error(f"{self._attr_name}: HTTP 타임아웃 (20초)")
+            # 네트워크 타임아웃은 즉시 timeout 처리
+            await self._update_sensor(f"timeout: {self._attr_name}")
             return
         except Exception as exc:
             _LOGGER.error(f"{self._attr_name} 실행 중 오류: {type(exc).__name__}: {exc}")
-            await self._update_sensor(f"✗ {self._attr_name} ({type(exc).__name__})")
+            await self._update_sensor(f"timeout: {self._attr_name}")
             return
 
-        # 1) API 응답 자체로 성공 판단 (오직 '1' 또는 JSON 숫자 1 만 성공으로 간주)
+        # 1) API 응답 자체로 성공 판단 ({"success":1}, "1", JSON 숫자 1 등)
         if self._api_response_indicates_success(result):
-            _LOGGER.info(f"{self._attr_name} 실행 완료 (API 응답으로 판별)")
-            await self._update_sensor(f"✓ {self._attr_name}")
+            _LOGGER.info(f"{self._attr_name} 명령 전송 성공 (API 응답)")
+            await self._update_sensor(f"명령 전송 성공: {self._attr_name}")
             return
 
-        # 2) notification_entity 설정이 있으면 알림을 폴링하여 기대 문구 확인 (타임아웃 20초)
+        # 2) API에서 즉시 성공 응답이 없을 경우: notification_entity 설정이 있으면 알림을 폴링하여 실제 실행 여부 확인
         if self._notification_entity:
             expected_phrases = self._expected_phrases_for_cmd(self._cmd)
             if expected_phrases:
                 ok = await self._wait_for_notification(expected_phrases, timeout=20)
                 if ok:
-                    _LOGGER.info(f"{self._attr_name} 실행 완료 (notification 확인)")
-                    await self._update_sensor(f"✓ {self._attr_name}")
+                    _LOGGER.info(f"{self._attr_name} 명령 실행 성공 (notification 확인)")
+                    await self._update_sensor(f"명령 실행 성공: {self._attr_name}")
                     return
+                # 알림 미수신 -> timeout 처리
+                _LOGGER.warning(f"{self._attr_name} 알림 미수신 (notification timeout)")
+                await self._update_sensor(f"timeout: {self._attr_name}")
+                return
 
-        # 3) 실패 처리
-        _LOGGER.warning(f"{self._attr_name} 실행 실패 (API 및 notification으로 확인 불가)")
-        await self._update_sensor(f"✗ {self._attr_name}")
+        # 3) notification_entity 미설정 또는 기대문구 없음 -> timeout 처리
+        _LOGGER.warning(f"{self._attr_name} 명확한 성공 응답 없음 및 notification 미설정 -> timeout")
+        await self._update_sensor(f"timeout: {self._attr_name}")
 
     def _api_response_indicates_success(self, response_text: str) -> bool:
-        """API는 명령 전송의 성공/실패만 반환하므로 '1' (또는 JSON 숫자 1)만 성공으로 간주."""
+        """API는 명령 전송의 성공/실패만 반환하므로 다음 케이스만 성공으로 간주:
+           - 정확한 문자열 "1"
+           - JSON 숫자 1 또는 JSON 객체에서 success/result/status 키가 1/"1"/True
+        """
         txt = (response_text or "").strip()
         # 정확히 "1"인 경우 성공
         if txt == "1":
             return True
-        # JSON 형태로 숫자 1 혹은 {"result":1} 등 처리 시 성공으로 판단
+
+        # JSON 형태 검사
         try:
             data = json.loads(response_text)
-            # 숫자 1 직접 반환 또는 {"result": 1}
+            # 응답이 단순 숫자 1인 경우
             if data == 1:
                 return True
-            if isinstance(data, dict) and (data.get("result") == 1 or data.get("status") == 1):
-                return True
+            # 응답이 dict인 경우 특정 키 검사
+            if isinstance(data, dict):
+                for key in ("success", "result", "status"):
+                    if key in data:
+                        val = data.get(key)
+                        # 정수 1, 문자열 "1", 또는 True 를 성공으로 간주
+                        if val == 1 or str(val) == "1" or val is True:
+                            return True
         except Exception:
             pass
         return False
